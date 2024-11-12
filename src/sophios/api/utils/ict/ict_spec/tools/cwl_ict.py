@@ -1,4 +1,5 @@
 """CWL generation for ICT objects.""" ""
+import json
 from typing import Union, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -43,7 +44,8 @@ def clt_dict(ict_: "ICT", network_access: bool) -> dict:
             for io in ict_.outputs
         },
         "requirements": requirements(ict_, network_access),
-        "baseCommand": ict_.entrypoint,
+        # "baseCommand": ict_.entrypoint,
+        "baseCommand": json.loads(str(ict_.entrypoint)),
         "label": ict_.title,
         "doc": str(ict_.documentation),
     }
