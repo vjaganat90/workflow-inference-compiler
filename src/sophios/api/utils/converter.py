@@ -147,7 +147,7 @@ def get_topological_order(links: list[dict[str, str]]) -> list[str]:
     return result
 
 
-def wfb_to_wic(inp: Json) -> Cwl:
+def wfb_to_wic(inp: Json, plugins: dict[dict, dict]) -> Cwl:
     """Convert lean wfb json to compliant wic"""
     # non-schema preserving changes
     inp_restrict = copy.deepcopy(inp)
@@ -185,29 +185,39 @@ def wfb_to_wic(inp: Json) -> Cwl:
         tgt_node = next((node for node in inp_restrict['nodes'] if node['id'] == tgt_id), None)
         assert src_node, f'output(s) of source node of edge{edg} must exist!'
         assert tgt_node, f'input(s) of target node of edge{edg} must exist!'
-        # flattened list of keys
-        if src_node.get('out') and tgt_node.get('in'):
-            src_out_keys = [sk for sout in src_node['out'] for sk in sout.keys()]
-            tgt_in_keys = list(tgt_node['in'])
-            outIndex = int(edg['outletIndex'])
-            inIndex = int(edg['inletIndex'])
-            # print(outIndex, inIndex)
-            # tgt_in_keys[inIndex] = yaml.load('!* ' + tgt_in_keys[inIndex], Loader=wic_loader())
-            # tgt_in_keys.pop(inIndex)
-            # for dfk in tgt_in_keys:
-            #     dfk = yaml.load('!ii ' + str(dfk), Loader=wic_loader())
-            # we match the source output tag type to target input tag type
-            # and connect them through '!* ' for input, all outputs are '!& ' before this
-            for sk in src_out_keys:
-                # It maybe possible that (explicit) outputs of src nodes might not have corresponding
-                # (explicit) inputs in target node
-                if tgt_node['in'].get(sk):
-                    tgt_node['in'][sk] = yaml.load('!* ' + tgt_node['in'][sk], Loader=wic_loader())
-            # the inputs which aren't dependent on previous/other steps
-            # they are by default inline input
-            diff_keys = set(tgt_in_keys) - set(src_out_keys)
-            for dfk in diff_keys:
-                tgt_node['in'][dfk] = yaml.load('!ii ' + str(tgt_node['in'][dfk]), Loader=wic_loader())
+        if plugins:
+            # find the plugin based on pluginId
+            src_plugin: dict[str, dict] = next((p for p in plugins if p['pid'] == src_node['pluginId']), None)
+            tgt_plugin: dict[str, dict] = next((p for p in plugins if p['pid'] == tgt_node['pluginId']), None)
+            if src_node.get('out') and tgt_node.get('in'):
+                tgt_in_keys = list(tgt_node['in'])
+                outIndex = int(edg['outletIndex'])
+                inIndex = int(edg['inletIndex'])
+                src_output_name = src_plugin['outputs'][outIndex]['name']
+                tgt_input_name = tgt_plugin['inputs'][inIndex]['name']
+                # get the value of source node output's value
+                src_out_val = next((p.get(src_output_name).get('wic_anchor')
+                                    for p in src_node['out'] if src_output_name in p), None)
+                tgt_node['in'][tgt_input_name] = yaml.load('!* ' + src_out_val, Loader=wic_loader())
+                tgt_in_keys.remove(tgt_input_name)
+                for dfk in tgt_in_keys:
+                    tgt_node['in'][dfk] = yaml.load('!ii ' + str(tgt_node['in'][dfk]), Loader=wic_loader())
+        else:
+            if src_node.get('out') and tgt_node.get('in'):
+                src_out_keys = [sk for sout in src_node['out'] for sk in sout.keys()]
+                tgt_in_keys = list(tgt_node['in'])
+                # we match the source output tag type to target input tag type
+                # and connect them through '!* ' for input, all outputs are '!& ' before this
+                for sk in src_out_keys:
+                    # It maybe possible that (explicit) outputs of src nodes might not have corresponding
+                    # (explicit) inputs in target node
+                    if tgt_node['in'].get(sk):
+                        tgt_node['in'][sk] = yaml.load('!* ' + tgt_node['in'][sk], Loader=wic_loader())
+                # the inputs which aren't dependent on previous/other steps
+                # they are by default inline input
+                diff_keys = set(tgt_in_keys) - set(src_out_keys)
+                for dfk in diff_keys:
+                    tgt_node['in'][dfk] = yaml.load('!ii ' + str(tgt_node['in'][dfk]), Loader=wic_loader())
 
     workflow_temp: Cwl = {}
     if inp_restrict["links"] != []:
