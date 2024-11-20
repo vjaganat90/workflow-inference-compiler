@@ -188,7 +188,7 @@ def wfb_to_wic(inp: Json) -> Cwl:
         # flattened list of keys
         if src_node.get('out') and tgt_node.get('in'):
             src_out_keys = [sk for sout in src_node['out'] for sk in sout.keys()]
-            tgt_in_keys = tgt_node['in'].keys()
+            tgt_in_keys = list(tgt_node['in'])
             # we match the source output tag type to target input tag type
             # and connect them through '!* ' for input, all outputs are '!& ' before this
             for sk in src_out_keys:
