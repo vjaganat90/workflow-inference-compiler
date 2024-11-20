@@ -189,6 +189,13 @@ def wfb_to_wic(inp: Json) -> Cwl:
         if src_node.get('out') and tgt_node.get('in'):
             src_out_keys = [sk for sout in src_node['out'] for sk in sout.keys()]
             tgt_in_keys = list(tgt_node['in'])
+            outIndex = int(edg['outletIndex'])
+            inIndex = int(edg['inletIndex'])
+            # print(outIndex, inIndex)
+            # tgt_in_keys[inIndex] = yaml.load('!* ' + tgt_in_keys[inIndex], Loader=wic_loader())
+            # tgt_in_keys.pop(inIndex)
+            # for dfk in tgt_in_keys:
+            #     dfk = yaml.load('!ii ' + str(dfk), Loader=wic_loader())
             # we match the source output tag type to target input tag type
             # and connect them through '!* ' for input, all outputs are '!& ' before this
             for sk in src_out_keys:
@@ -206,8 +213,8 @@ def wfb_to_wic(inp: Json) -> Cwl:
     if inp_restrict["links"] != []:
         node_order = get_topological_order(inp_restrict["links"])
         workflow_temp["steps"] = []
-        for id in node_order:
-            node = next((n for n in inp_restrict["nodes"] if n["id"] == id), None)
+        for node_id in node_order:
+            node = next((n for n in inp_restrict["nodes"] if n["id"] == node_id), None)
             if node:
                 # just reuse name as node's pluginId, wic id is same as wfb name
                 node['id'] = node['pluginId'].split('@')[0].replace('/', '_')
