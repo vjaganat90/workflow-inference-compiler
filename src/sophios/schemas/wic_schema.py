@@ -478,6 +478,8 @@ def wic_main_schema(tools_cwl: Tools, yml_stems: List[str], schema_store: Dict[s
     steps_list['type'] = 'array'
     steps_list['description'] = 'A list of workflow steps'
 
+    steps_list['properties'] = {**schemas_tools_dict, **schemas_yml_dict}
+
     steps_dict: Json = {}
     steps_dict['type'] = 'object'
     steps_dict['description'] = 'An ordered dict of workflow steps'

@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 
 import graphviz
-from hypothesis import given, settings, HealthCheck
+from hypothesis import given, reproduce_failure, settings, HealthCheck
 import networkx as nx
 import pytest
 
@@ -30,6 +30,7 @@ class TestFuzzyCompile(unittest.TestCase):
                                      HealthCheck.filter_too_much],
               deadline=timedelta(milliseconds=20000))
     # TODO: Improve schema so we can remove the health checks
+    # @reproduce_failure('6.123.2', b'AXicJY2hCsJwGMTv999UECbiC4gmMVosism6bhBsTiYLJoP4AANfweRDGEwWEUwLVuOCyWrRz3nhjju4OwIQuqEDClGEMpWRb/EY3dFMTmb2KDd1HttsmnSXcWSOemcBpWGCVuiMngW30ByNwD9e0An10Qa83gdqjZfV0gdU3k05W24XTzlU0zUaoB0E14l+r6H++ALmmBs+')
     def test_fuzzy_compile(self, yml: Yaml) -> None:
         """Tests that the compiler doesn't crash when given random allegedly valid input.\n
         Note that the full schema has performance limitations, so a random subset of\n
@@ -40,6 +41,7 @@ class TestFuzzyCompile(unittest.TestCase):
         """
         plugin_ns = 'global'
         yml_path = Path('random_stepid')
+        # print(yml.get('steps'))
         steps_keys = sophios.utils.get_steps_keys(yml.get('steps', []))
         subkeys = sophios.utils.get_subkeys(steps_keys)
         if subkeys:
