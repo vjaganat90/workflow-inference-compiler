@@ -71,8 +71,8 @@ jobs:
         if: runner.os != 'Windows'
         uses: conda-incubator/setup-miniconda@v2.2.0
         with:
-          miniforge-variant: Miniforge-pypy3
-          miniforge-version: 24.7.1-0
+          miniforge-variant: Miniforge3
+          miniforge-version: 24.7.1-2
           environment-file: sophios/install/system_deps.yml
           activate-environment: wic
           use-mamba: true
