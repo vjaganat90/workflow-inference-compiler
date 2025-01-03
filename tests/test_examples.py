@@ -117,7 +117,7 @@ def test_run_inlined_workflows_on_push(yml_path_str: str, yml_path: Path, cwl_ru
        directories in 'search_paths_wic', excluding all workflows which have been
        blacklisted in the various config_ci.json files and excluding the weekly
        workflows."""
-    args = get_args(str(yml_path), ['--cwl_inline_subworkflows'])
+    args = get_args(str(yml_path), ['--cwl_inline_subworkflows', '--cwl_inline_runtag'])
     run_workflows(yml_path_str, yml_path, cwl_runner, args)
 
 
@@ -150,7 +150,7 @@ def test_run_workflows_weekly(yml_path_str: str, yml_path: Path, cwl_runner: str
 @pytest.mark.parametrize("yml_path_str, yml_path", yml_paths_tuples_weekly)
 def test_run_inlined_workflows_weekly(yml_path_str: str, yml_path: Path, cwl_runner: str) -> None:
     """Inlines and runs all of the run_weekly workflows whitelisted in the various config_ci.json files."""
-    args = get_args(str(yml_path), ['--cwl_inline_subworkflows'])
+    args = get_args(str(yml_path), ['--cwl_inline_subworkflows', '--cwl_inline_runtag'])
     run_workflows(yml_path_str, yml_path, cwl_runner, args)
 
 
